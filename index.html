@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>متتبع المحاضرات</title>
+<style>
+:root{--bg:#f4f6fb;--card:#fff;--tx:#1e2433;--mut:#6b7385;--bd:#e3e7f0;--pri:#4f6ef7;--dan:#e5484d;--sh:0 4px 18px rgba(30,40,80,.08);--f:Tahoma,"Segoe UI",system-ui,sans-serif;--gap:8px}
+[data-theme=dark]{--bg:#0f1320;--card:#1a2033;--tx:#e8ebf5;--mut:#98a1b8;--bd:#2b3350;--sh:0 4px 18px rgba(0,0,0,.4)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:var(--f);line-height:1.5;overflow-x:hidden}
+body:not(.anim) *{transition:none!important;animation:none!important}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+.wrap{max-width:1200px;margin:0 auto;padding:16px}
+header{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:16px}
+h1{margin:0;font-size:1.5rem}
+.btn{border:1px solid var(--bd);background:var(--card);border-radius:12px;padding:10px 14px;min-height:42px;transition:.15s}
+.btn:hover{border-color:var(--pri);transform:translateY(-1px)}
+.btn.pri{background:var(--pri);border-color:var(--pri);color:#fff}
+.btn.dan{background:var(--dan);border-color:var(--dan);color:#fff}
+.tools{display:flex;flex-wrap:wrap;gap:8px}
+.bar-tools{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.bar-tools input,.bar-tools select,dialog input:not([type=checkbox]):not([type=range]):not([type=color]),dialog select{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:9px 12px;min-height:42px;width:100%}
+.bar-tools input{flex:1 1 220px;width:auto}.bar-tools select{flex:0 1 auto;width:auto}
+#stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:16px}
+.stat{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:14px;box-shadow:var(--sh);text-align:center}
+.stat b{display:block;font-size:1.6rem}.stat span{color:var(--mut);font-size:.85rem}
+.bar{height:10px;background:var(--bd);border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--ac,var(--pri));border-radius:99px;transition:width .4s}
+#gbar{margin-bottom:20px}#gbar p{margin:0 0 6px;font-weight:700}
+#list{display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(min(100%,340px),1fr))}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:18px;padding:16px;box-shadow:var(--sh);position:relative;transition:box-shadow .2s,opacity .2s}
+.card:hover{box-shadow:0 8px 26px rgba(30,40,80,.14)}
+.card.drag{opacity:.4}
+.ch{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.ch h2{margin:0;font-size:1.1rem;flex:1;overflow-wrap:anywhere}
+.ic{border:0;background:none;font-size:1.2rem;padding:6px;border-radius:8px;min-width:36px;min-height:36px}
+.ic:hover{background:var(--bd)}
+.grip{cursor:grab;color:var(--mut)}
+.meta{display:flex;justify-content:space-between;align-items:center;color:var(--mut);font-size:.9rem;margin-bottom:6px;gap:8px}
+.step{display:flex;align-items:center;gap:6px}.step button{width:32px;height:32px;border-radius:10px;border:1px solid var(--bd);background:var(--bg)}
+.lecs{display:flex;flex-wrap:wrap;gap:var(--gap);margin:12px 0}
+.lec{width:var(--sz);height:var(--sz);border-radius:var(--r);border:2px solid var(--lbd);background:var(--lb);color:var(--lt);font-size:var(--fs);padding:0;position:relative;transition:transform .15s,background .2s}
+.lec:hover{transform:translateY(-2px) scale(1.07);box-shadow:0 4px 10px rgba(0,0,0,.2)}
+.lec.on{background:var(--ld);border-color:var(--ld);color:var(--ldt)}
+.lec.on::after{content:"✓";position:absolute;top:-6px;inset-inline-start:-6px;width:16px;height:16px;border-radius:50%;background:#fff;color:#16a34a;font-size:10px;line-height:16px;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.nn .lec.on::after{inset:0;width:auto;height:auto;background:none;color:inherit;font-size:var(--fs);display:grid;place-items:center;box-shadow:none}
+.lec[data-sh=soft]{box-shadow:0 3px 8px rgba(0,0,0,.18)}
+.foot{display:flex;gap:8px;flex-wrap:wrap}.foot .btn{padding:6px 12px;min-height:36px}
+.menu{position:absolute;top:50px;inset-inline-start:12px;background:var(--card);border:1px solid var(--bd);border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.25);padding:6px;z-index:20;min-width:190px}
+.menu[hidden]{display:none}
+.menu button{display:block;width:100%;text-align:start;border:0;background:none;padding:10px 12px;border-radius:9px}
+.menu button:hover{background:var(--bd)}
+.empty{text-align:center;color:var(--mut);padding:50px 10px;grid-column:1/-1}
+dialog{border:0;border-radius:20px;padding:20px;width:min(480px,94vw);max-height:90vh;overflow:auto;background:var(--card);color:var(--tx);box-shadow:0 20px 60px rgba(0,0,0,.4)}
+dialog::backdrop{background:rgba(10,14,28,.55)}
+dialog h3{margin:0 0 12px}
+label{display:block;margin:10px 0 4px;font-size:.9rem;color:var(--mut)}
+.row{display:flex;gap:10px;flex-wrap:wrap}.row>*{flex:1 1 120px}
+.cr{display:flex;gap:6px;align-items:center}.cr input[type=color]{width:44px;height:38px;padding:2px;border:1px solid var(--bd);border-radius:8px;background:none}
+.cr .btn{padding:4px 8px;min-height:32px;font-size:.8rem}.cr .btn.on{background:var(--pri);color:#fff}
+.icons{display:flex;flex-wrap:wrap;gap:4px}.icons button{font-size:1.3rem;border:2px solid transparent;background:var(--bg);border-radius:10px;width:40px;height:40px}.icons button.sel{border-color:var(--pri)}
+.act{display:flex;gap:8px;justify-content:flex-start;margin-top:18px;flex-wrap:wrap}
+.chk{display:flex;gap:8px;align-items:center;margin:10px 0;color:var(--tx)}.chk input{width:20px;height:20px}
+#toasts{position:fixed;bottom:16px;inset-inline:0;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;z-index:100}
+.toast{background:#1f9d62;color:#fff;padding:10px 18px;border-radius:12px;box-shadow:0 6px 20px rgba(0,0,0,.3);animation:in .25s;max-width:92vw}
+.toast.err{background:var(--dan)}
+@keyframes in{from{opacity:0;transform:translateY(10px)}}
+:focus-visible{outline:3px solid var(--pri);outline-offset:2px}
+@media(max-width:520px){.wrap{padding:10px}h1{font-size:1.2rem}.btn{padding:9px 11px}}
+</style>
+</head>
+<body class="anim">
+<div class="wrap">
+<header>
+<h1>📚 متتبع المحاضرات</h1>
+<div class="tools">
+<button class="btn pri" id="addBtn">＋ إضافة مادة</button>
+<button class="btn" id="setBtn" aria-label="الإعدادات">⚙️</button>
+<button class="btn" id="themeBtn" aria-label="تبديل الوضع الليلي">🌙</button>
+</div>
+</header>
+<section id="stats" aria-label="الإحصائيات"></section>
+<section id="gbar" aria-label="التقدم الكلي"></section>
+<div class="bar-tools">
+<input type="search" id="q" placeholder="🔍 ابحث عن مادة…" aria-label="بحث عن مادة">
+<select id="sf" aria-label="فلتر المواد"><option value="all">كل المواد</option><option value="done">المواد المكتملة</option><option value="pending">المواد غير المكتملة</option></select>
+<select id="lf" aria-label="فلتر المحاضرات"><option value="all">كل المحاضرات</option><option value="done">المكتملة</option><option value="pending">غير المكتملة</option></select>
+</div>
+<main id="list" aria-live="polite"></main>
+</div>
+<dialog id="dlg" aria-modal="true"></dialog>
+<input type="file" id="imp" accept=".json,application/json" hidden>
+<div id="toasts" aria-live="polite"></div>
+<script>
+// Data
+const KEY='lecture-tracker-v1';
+const SHAPES={square:['مربع','8px'],rounded:['مربع بزوايا دائرية','16px'],circle:['دائرة','50%'],soft:['مربع ناعم','12px'],sharp:['مربع حاد','0']};
+const FONTS={sys:['النظام','Tahoma,"Segoe UI",system-ui,sans-serif'],serif:['Serif','Georgia,"Times New Roman",serif'],mono:['Mono','ui-monospace,Consolas,monospace']};
+const ICONS=['📐','⚛️','🧪','🧬','📖','🔤','🕌','💻','🌍','🎨','📊','⚖️','🩺','🔬','📚','🧮'];
+const DEF_SET={dark:null,gap:8,size:44,shape:'rounded',font:'sys',anim:true,stats:true,bar:true,nums:true};
+const $=s=>document.querySelector(s);
+const esc=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const clamp=(v,a,b,d)=>{v=parseInt(v,10);return isNaN(v)?d:Math.max(a,Math.min(b,v))};
+const hex=v=>typeof v==='string'&&/^#[0-9a-f]{6}$/i.test(v)?v:'';
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+let S,ui={q:'',sf:'all',lf:'all',drag:null};
+
+function normSubject(o){
+  if(!o||typeof o!=='object')return null;
+  let l=Array.isArray(o.l)?o.l.slice(0,500).map(Boolean):Array(clamp(o.count,1,500,10)).fill(false);
+  return{id:typeof o.id==='string'&&o.id?o.id:uid(),name:String(o.name||'مادة').slice(0,60),icon:String(o.icon||'📚').slice(0,4),
+    color:hex(o.color)||'#4f6ef7',done:hex(o.done),text:hex(o.text),border:hex(o.border),bg:hex(o.bg),
+    shape:SHAPES[o.shape]?o.shape:'rounded',size:clamp(o.size,24,90,44),fs:clamp(o.fs,9,32,16),l};
+}
+function normSettings(o){
+  o=o&&typeof o==='object'?o:{};const s={...DEF_SET};
+  s.dark=typeof o.dark==='boolean'?o.dark:null;s.gap=clamp(o.gap,0,30,8);s.size=clamp(o.size,24,90,44);
+  s.shape=SHAPES[o.shape]?o.shape:'rounded';s.font=FONTS[o.font]?o.font:'sys';
+  for(const k of['anim','stats','bar','nums'])s[k]=typeof o[k]==='boolean'?o[k]:true;
+  return s;
+}
+function normState(d){
+  if(!d||typeof d!=='object'||!Array.isArray(d.subjects))return null;
+  const seen=new Set(),subjects=[];
+  for(const x of d.subjects){const s=normSubject(x);if(!s)continue;while(seen.has(s.id))s.id=uid();seen.add(s.id);subjects.push(s)}
+  return{v:1,subjects,settings:normSettings(d.settings)};
+}
+function demo(){
+  const rows=[['الرياضيات','📐',20,'#3b82f6'],['الفيزياء','⚛️',15,'#8b5cf6'],['الكيمياء','🧪',18,'#10b981'],['الأحياء','🧬',25,'#f97316'],['العربي','📖',12,'#ec4899'],['الإنكليزي','🔤',20,'#06b6d4'],['الإسلامية','🕌',10,'#eab308']];
+  return normState({subjects:rows.map(r=>({name:r[0],icon:r[1],count:r[2],color:r[3]})),settings:{}});
+}
+
+// LocalStorage
+function load(){
+  let raw=null;try{raw=localStorage.getItem(KEY)}catch(e){}
+  if(raw){try{const s=normState(JSON.parse(raw));if(s)return s}catch(e){try{localStorage.setItem(KEY+'-backup',raw)}catch(_){}}}
+  return demo();
+}
+let warned=false;
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){if(!warned){warned=true;toast('تعذّر حفظ البيانات في المتصفح',true)}}}
+
+// Notifications
+function toast(msg,err){
+  const t=document.createElement('div');t.className='toast'+(err?' err':'');t.textContent=(err?'⚠ ':'✓ ')+msg;
+  $('#toasts').appendChild(t);setTimeout(()=>t.remove(),2600);
+}
+
+// Modal
+const dlg=$('#dlg');let pending=null;
+function show(html){dlg.innerHTML=html;if(!dlg.open)dlg.showModal()}
+function closeDlg(){if(dlg.open)dlg.close()}
+dlg.addEventListener('close',()=>{if(pending){const r=pending;pending=null;r(false)}});
+dlg.addEventListener('click',e=>{
+  const b=e.target.closest('[data-r]');
+  if(b&&pending){const r=pending;pending=null;closeDlg();r(b.dataset.r==='1')}
+  else if(e.target.closest('[data-close]'))closeDlg();
+});
+function confirmBox(msg,ok){
+  return new Promise(res=>{
+    show(`<h3>تأكيد</h3><p>${esc(msg)}</p><div class="act"><button class="btn" data-r="0" type="button">إلغاء</button><button class="btn dan" data-r="1" type="button">${esc(ok||'تأكيد')}</button></div>`);
+    pending=res;
+  });
+}
+
+// Statistics
+function stats(){
+  let tot=0,done=0;S.subjects.forEach(s=>{tot+=s.l.length;done+=s.l.filter(Boolean).length});
+  return{n:S.subjects.length,tot,done,rem:tot-done,p:tot?Math.round(done/tot*100):0};
+}
+function renderStats(){
+  const t=stats(),st=$('#stats'),gb=$('#gbar');
+  st.hidden=!S.settings.stats;gb.hidden=!S.settings.bar;
+  st.innerHTML=[['📚','المواد',t.n],['🎓','إجمالي المحاضرات',t.tot],['✅','المكتمل',t.done],['⏳','المتبقي',t.rem],['📊','نسبة الإنجاز',t.p+'%']].map(x=>`<div class="stat"><span>${x[0]} ${x[1]}</span><b>${x[2]}</b></div>`).join('');
+  gb.innerHTML=`<p>التقدم الكلي: ${t.p}%</p><div class="bar" role="progressbar" aria-valuenow="${t.p}" aria-valuemin="0" aria-valuemax="100"><i style="width:${t.p}%"></i></div>`;
+}
+
+// Rendering
+function cardHTML(s){
+  const done=s.l.filter(Boolean).length,tot=s.l.length,p=tot?Math.round(done/tot*100):0;
+  const v=`--ac:${s.color};--lb:${s.bg||'color-mix(in srgb,var(--ac) 14%,var(--card))'};--ld:${s.done||'var(--ac)'};--lt:${s.text||'var(--tx)'};--ldt:${s.text||'#fff'};--lbd:${s.border||'var(--ac)'};--sz:${s.size}px;--fs:${s.fs}px;--r:${SHAPES[s.shape][1]}`;
+  let b='';
+  s.l.forEach((d,i)=>{
+    if(ui.lf==='done'&&!d||ui.lf==='pending'&&d)return;
+    b+=`<button class="lec${d?' on':''}" data-i="${i}" data-sh="${s.shape}" aria-pressed="${d}" aria-label="محاضرة ${i+1}">${S.settings.nums?i+1:''}</button>`;
+  });
+  return `<article class="card" style="${v}" data-id="${s.id}" draggable="${ui.q?'false':'true'}">
+<div class="ch"><span class="grip" aria-hidden="true" title="اسحب لإعادة الترتيب">☰</span><h2>${esc(s.icon)} ${esc(s.name)}</h2>
+<button class="ic" data-act="menu" aria-label="خيارات المادة" aria-expanded="false">⋮</button></div>
+<div class="menu" hidden>
+<button data-act="edit">✏️ تعديل المادة</button><button data-act="edit">🎨 تغيير اللون</button><button data-act="add">➕ إضافة محاضرة</button><button data-act="rem">➖ حذف آخر محاضرة</button><button data-act="reset">↺ إعادة تعيين التقدم</button><button data-act="dup">⧉ نسخ المادة</button><button data-act="up">⬆ نقل للأعلى</button><button data-act="down">⬇ نقل للأسفل</button><button data-act="del">🗑 حذف المادة</button></div>
+<div class="meta"><span>التقدم: ${done} / ${tot} (${p}%)</span><span class="step"><button data-act="rem" aria-label="حذف محاضرة">−</button><b>${tot}</b><button data-act="add" aria-label="إضافة محاضرة">+</button></span></div>
+<div class="bar"><i style="width:${p}%"></i></div>
+<div class="lecs${S.settings.nums?'':' nn'}">${b||'<small>لا توجد محاضرات مطابقة</small>'}</div>
+<div class="foot"><button class="btn" data-act="add">＋ محاضرة</button><button class="btn" data-act="edit">✏️ تعديل</button><button class="btn" data-act="del">🗑 حذف</button></div>
+</article>`;
+}
+function visible(){
+  const q=ui.q.trim().toLowerCase();
+  return S.subjects.filter(s=>{
+    if(q&&!s.name.toLowerCase().includes(q))return false;
+    const full=s.l.length>0&&s.l.every(Boolean);
+    return ui.sf==='all'||(ui.sf==='done'?full:!full);
+  });
+}
+function render(){
+  const v=visible();
+  $('#list').innerHTML=v.length?v.map(cardHTML).join(''):`<div class="empty">${S.subjects.length?'لا توجد مواد مطابقة':'لا توجد مواد بعد. اضغط «إضافة مادة» للبدء 👆'}</div>`;
+  renderStats();
+}
+function applySettings(){
+  const s=S.settings,r=document.documentElement;
+  const dark=s.dark===null?matchMedia('(prefers-color-scheme:dark)').matches:s.dark;
+  r.dataset.theme=dark?'dark':'light';$('#themeBtn').textContent=dark?'☀️':'🌙';
+  r.style.setProperty('--gap',s.gap+'px');r.style.setProperty('--f',FONTS[s.font][1]);
+  document.body.classList.toggle('anim',s.anim);
+}
+const find=id=>S.subjects.find(s=>s.id===id);
+function commit(){save();render()}
+
+// Lectures
+function lecInfo(s,i){
+  const d=s.l[i];
+  show(`<h3>المحاضرة رقم ${i+1}</h3><p>${esc(s.name)}<br>الحالة: <b>${d?'مكتملة':'غير مكتملة'}</b></p><div class="act"><button class="btn pri" data-m="1">تحديد كمكتملة</button><button class="btn" data-m="0">تحديد كغير مكتملة</button><button class="btn" data-close>إغلاق</button></div>`);
+  dlg.dataset.sid=s.id;dlg.dataset.i=i;
+}
+function toggleLec(s,i,val){
+  s.l[i]=val===undefined?!s.l[i]:val;commit();
+  if(s.l[i])toast('تم إكمال المحاضرة');
+  const b=document.querySelector(`[data-id="${s.id}"] .lec[data-i="${i}"]`);if(b)b.focus();
+}
+async function removeLast(s){
+  if(s.l.length<=1){toast('يجب أن تبقى محاضرة واحدة على الأقل',true);return}
+  if(s.l[s.l.length-1]&&!await confirmBox('المحاضرة الأخيرة مكتملة. هل تريد حذفها؟','حذف'))return;
+  s.l.pop();commit();
+}
+
+// Materials
+async function act(s,a){
+  const i=S.subjects.indexOf(s);
+  if(a==='edit')return form(s);
+  if(a==='add'){if(s.l.length>=500)return toast('الحد الأقصى 500 محاضرة',true);s.l.push(false);commit()}
+  else if(a==='rem')return removeLast(s);
+  else if(a==='reset'){if(await confirmBox('سيتم تحويل جميع محاضرات '+s.name+' إلى غير مكتملة.','إعادة تعيين')){s.l=s.l.map(()=>false);commit();toast('تمت إعادة تعيين التقدم')}}
+  else if(a==='dup'){const c=normSubject({...s,id:uid(),name:s.name+' (نسخة)',l:s.l.map(()=>false)});S.subjects.splice(i+1,0,c);commit();toast('تم نسخ المادة')}
+  else if(a==='up'||a==='down'){const j=a==='up'?i-1:i+1;if(j<0||j>=S.subjects.length)return;[S.subjects[i],S.subjects[j]]=[S.subjects[j],S.subjects[i]];commit()}
+  else if(a==='del'){if(await confirmBox('هل أنت متأكد من حذف مادة '+s.name+'؟','حذف المادة')){S.subjects=S.subjects.filter(x=>x!==s);commit();toast('تم حذف المادة')}}
+}
+const CFIELDS=[['f-color','اللون الأساسي'],['f-bg','المحاضرة غير المكتملة'],['f-done','المحاضرة المكتملة'],['f-text','لون النص'],['f-border','لون الحدود']];
+function form(s){
+  const n=!s,d=s||normSubject({name:'',icon:ICONS[ICONS.length-1],count:10,color:'#4f6ef7',shape:S.settings.shape,size:S.settings.size});
+  const val={'f-color':d.color,'f-bg':d.bg,'f-done':d.done,'f-text':d.text,'f-border':d.border};
+  show(`<form id="sf2" data-id="${n?'':s.id}"><h3>${n?'إضافة مادة':'تعديل المادة'}</h3>
+<label for="f-name">اسم المادة</label><input id="f-name" maxlength="60" required value="${esc(d.name)}">
+<label>الأيقونة</label><div class="icons">${ICONS.map(x=>`<button type="button" data-ic="${x}" class="${x===d.icon?'sel':''}" aria-label="أيقونة ${x}">${x}</button>`).join('')}</div><input type="hidden" id="f-icon" value="${esc(d.icon)}">
+<div class="row"><div><label for="f-count">عدد المحاضرات (1–500)</label><input id="f-count" type="number" min="1" max="500" value="${d.l.length}"></div>
+<div><label for="f-shape">شكل المربعات</label><select id="f-shape">${Object.keys(SHAPES).map(k=>`<option value="${k}"${k===d.shape?' selected':''}>${SHAPES[k][0]}</option>`).join('')}</select></div></div>
+<div class="row"><div><label for="f-size">حجم المربعات: <span id="o1">${d.size}</span>px</label><input id="f-size" type="range" min="24" max="90" value="${d.size}" oninput="o1.textContent=this.value"></div>
+<div><label for="f-fs">حجم النص: <span id="o2">${d.fs}</span>px</label><input id="f-fs" type="range" min="9" max="32" value="${d.fs}" oninput="o2.textContent=this.value"></div></div>
+<div class="row">${CFIELDS.map(([id,t])=>{const a=id!=='f-color'&&!val[id];return `<div><label for="${id}">${t}</label><div class="cr"><input type="color" id="${id}" value="${val[id]||'#808080'}" data-auto="${a?1:0}">${id==='f-color'?'':`<button type="button" class="btn${a?' on':''}" data-reset="${id}">تلقائي</button>`}</div></div>`}).join('')}</div>
+<div class="act"><button class="btn pri" type="submit">${n?'إضافة':'حفظ التغييرات'}</button><button class="btn" type="button" data-close>إلغاء</button></div></form>`);
+  setTimeout(()=>$('#f-name').focus(),30);
+}
+const fv=id=>{const e=$('#'+id);return e.dataset.auto==='1'?'':e.value};
+dlg.addEventListener('click',e=>{
+  const ic=e.target.closest('[data-ic]');
+  if(ic){$('#f-icon').value=ic.dataset.ic;dlg.querySelectorAll('[data-ic]').forEach(b=>b.classList.toggle('sel',b===ic))}
+  const rs=e.target.closest('[data-reset]');
+  if(rs){const c=$('#'+rs.dataset.reset);c.dataset.auto='1';rs.classList.add('on')}
+  const m=e.target.closest('[data-m]');
+  if(m){const s=find(dlg.dataset.sid);if(s){const i=+dlg.dataset.i;closeDlg();toggleLec(s,i,m.dataset.m==='1')}}
+});
+dlg.addEventListener('input',e=>{
+  const t=e.target;
+  if(t.type==='color'&&t.dataset.auto==='1'){t.dataset.auto='0';const b=dlg.querySelector(`[data-reset="${t.id}"]`);if(b)b.classList.remove('on')}
+  const k=t.dataset.set;
+  if(k){S.settings[k]=t.type==='checkbox'?t.checked:t.type==='range'?+t.value:t.value;applySettings();save();render()}
+});
+dlg.addEventListener('submit',async e=>{
+  if(e.target.id!=='sf2')return;
+  e.preventDefault();
+  const id=e.target.dataset.id,s=id?find(id):null,name=$('#f-name').value.trim();
+  if(!name){toast('أدخل اسم المادة',true);return $('#f-name').focus()}
+  const count=clamp($('#f-count').value,1,500,0);
+  if(!count){toast('عدد المحاضرات يجب أن يكون بين 1 و 500',true);return}
+  if(s&&count<s.l.length&&s.l.slice(count).some(Boolean)&&!await confirmBox('بعض المحاضرات التي ستُحذف مكتملة. هل تريد المتابعة؟','متابعة'))return form(s);
+  const o={name,icon:$('#f-icon').value,color:fv('f-color')||'#4f6ef7',bg:fv('f-bg'),done:fv('f-done'),text:fv('f-text'),border:fv('f-border'),shape:$('#f-shape').value,size:$('#f-size').value,fs:$('#f-fs').value};
+  if(s){
+    Object.assign(s,normSubject({...s,...o,l:s.l}));
+    while(s.l.length>count)s.l.pop();while(s.l.length<count)s.l.push(false);
+    closeDlg();commit();toast('تم حفظ التغييرات');
+  }else{
+    S.subjects.push(normSubject({...o,count}));closeDlg();commit();toast('تمت إضافة المادة بنجاح');
+  }
+});
+
+// Search / Filters
+$('#q').addEventListener('input',e=>{ui.q=e.target.value;render()});
+$('#sf').addEventListener('change',e=>{ui.sf=e.target.value;render()});
+$('#lf').addEventListener('change',e=>{ui.lf=e.target.value;render()});
+
+// Events (cards)
+const list=$('#list');let lp=null,lpFired=false;
+function closeMenus(){list.querySelectorAll('.menu:not([hidden])').forEach(m=>{m.hidden=true;const b=m.previousElementSibling&&m.previousElementSibling.querySelector('[data-act=menu]');if(b)b.setAttribute('aria-expanded','false')})}
+list.addEventListener('click',e=>{
+  if(lpFired){lpFired=false;return}
+  const card=e.target.closest('.card');if(!card)return;
+  const s=find(card.dataset.id);if(!s)return;
+  const lec=e.target.closest('.lec');
+  if(lec)return toggleLec(s,+lec.dataset.i);
+  const b=e.target.closest('[data-act]');if(!b)return;
+  if(b.dataset.act==='menu'){
+    const m=card.querySelector('.menu'),open=m.hidden;closeMenus();m.hidden=!open;b.setAttribute('aria-expanded',String(open));
+    if(open)m.querySelector('button').focus();return;
+  }
+  closeMenus();act(s,b.dataset.act);
+});
+document.addEventListener('click',e=>{if(!e.target.closest('.menu,[data-act=menu]'))closeMenus()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMenus()});
+list.addEventListener('contextmenu',e=>{
+  const lec=e.target.closest('.lec');if(!lec)return;
+  e.preventDefault();const s=find(lec.closest('.card').dataset.id);if(s)lecInfo(s,+lec.dataset.i);
+});
+list.addEventListener('touchstart',e=>{
+  const lec=e.target.closest('.lec');if(!lec)return;
+  lp=setTimeout(()=>{const s=find(lec.closest('.card').dataset.id);if(s){lpFired=true;lecInfo(s,+lec.dataset.i)}},550);
+},{passive:true});
+['touchend','touchmove','touchcancel'].forEach(t=>list.addEventListener(t,()=>clearTimeout(lp),{passive:true}));
+
+// Drag & Drop
+list.addEventListener('dragstart',e=>{
+  const c=e.target.closest&&e.target.closest('.card');if(!c||ui.q)return;
+  ui.drag=c.dataset.id;c.classList.add('drag');e.dataTransfer.effectAllowed='move';try{e.dataTransfer.setData('text/plain',ui.drag)}catch(_){}
+});
+list.addEventListener('dragover',e=>{if(ui.drag)e.preventDefault()});
+list.addEventListener('drop',e=>{
+  const c=e.target.closest('.card');if(!c||!ui.drag)return;e.preventDefault();
+  const from=S.subjects.findIndex(s=>s.id===ui.drag),to=S.subjects.findIndex(s=>s.id===c.dataset.id);
+  ui.drag=null;if(from<0||to<0||from===to)return;
+  const [m]=S.subjects.splice(from,1);S.subjects.splice(to,0,m);commit();
+});
+list.addEventListener('dragend',()=>{ui.drag=null;list.querySelectorAll('.drag').forEach(c=>c.classList.remove('drag'))});
+
+// Settings
+function settingsDlg(){
+  const s=S.settings,chk=(k,t)=>`<label class="chk"><input type="checkbox" data-set="${k}"${s[k]?' checked':''}>${t}</label>`;
+  show(`<h3>⚙️ الإعدادات</h3>
+<label for="s-size">حجم المربعات للمواد الجديدة</label><input id="s-size" type="range" min="24" max="90" value="${s.size}" data-set="size">
+<label for="s-gap">المسافة بين المربعات</label><input id="s-gap" type="range" min="0" max="30" value="${s.gap}" data-set="gap">
+<div class="row"><div><label for="s-shape">شكل المربعات للمواد الجديدة</label><select id="s-shape" data-set="shape">${Object.keys(SHAPES).map(k=>`<option value="${k}"${k===s.shape?' selected':''}>${SHAPES[k][0]}</option>`).join('')}</select></div>
+<div><label for="s-font">الخط</label><select id="s-font" data-set="font">${Object.keys(FONTS).map(k=>`<option value="${k}"${k===s.font?' selected':''}>${FONTS[k][0]}</option>`).join('')}</select></div></div>
+${chk('anim','الحركة (Animation)')}${chk('stats','إظهار الإحصائيات')}${chk('bar','إظهار Progress Bar')}${chk('nums','إظهار أرقام المحاضرات')}
+<label class="chk"><input type="checkbox" id="s-dark"${$('html').dataset.theme==='dark'?' checked':''}>الوضع الليلي</label>
+<div class="act"><button class="btn" id="exp" type="button">⬇ تصدير البيانات</button><button class="btn" id="impB" type="button">⬆ استيراد البيانات</button></div>
+<div class="act"><button class="btn dan" id="wipe" type="button">🗑 حذف جميع البيانات</button><button class="btn" data-close type="button">إغلاق</button></div>`);
+}
+dlg.addEventListener('change',e=>{if(e.target.id==='s-dark')setDark(e.target.checked)});
+function setDark(v){S.settings.dark=v;applySettings();save()}
+dlg.addEventListener('click',async e=>{
+  const id=e.target.id;
+  if(id==='exp')exportData();
+  else if(id==='impB')$('#imp').click();
+  else if(id==='wipe'){
+    if(await confirmBox('سيؤدي هذا إلى حذف جميع المواد والمحاضرات والإعدادات.','حذف كل شيء')){
+      try{localStorage.removeItem(KEY)}catch(_){}
+      S={v:1,subjects:[],settings:{...DEF_SET}};applySettings();render();toast('تم حذف جميع البيانات');
+    }
+  }
+});
+$('#setBtn').onclick=settingsDlg;
+$('#addBtn').onclick=()=>form(null);
+$('#themeBtn').onclick=()=>setDark($('html').dataset.theme!=='dark');
+
+// Import / Export
+function exportData(){
+  try{
+    const b=new Blob([JSON.stringify(S,null,2)],{type:'application/json'}),a=document.createElement('a');
+    a.href=URL.createObjectURL(b);a.download='lectures-backup-'+new Date().toISOString().slice(0,10)+'.json';
+    document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000);toast('تم تصدير البيانات');
+  }catch(e){toast('فشل التصدير',true)}
+}
+$('#imp').addEventListener('change',e=>{
+  const f=e.target.files[0];e.target.value='';if(!f)return;
+  if(f.size>5e6)return toast('الملف كبير جدًا',true);
+  const r=new FileReader();
+  r.onerror=()=>toast('تعذّرت قراءة الملف',true);
+  r.onload=async()=>{
+    let n=null;try{n=normState(JSON.parse(r.result))}catch(_){}
+    if(!n)return toast('ملف غير صالح: لا يمكن استيراده',true);
+    if(await confirmBox('سيتم استبدال بياناتك الحالية بـ '+n.subjects.length+' مادة من الملف.','استيراد')){
+      S=n;applySettings();commit();toast('تم استيراد البيانات')}
+  };
+  r.readAsText(f);
+});
+
+// Init
+S=load();applySettings();render();
+</script>
+</body>
+</html>
